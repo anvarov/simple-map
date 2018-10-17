@@ -1,0 +1,11 @@
+.App {
+  margin: 11rem;
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+.popup {
+  width: 300px;
+  height: 300px;
+  overflow: visible
+}
+
