@@ -1,6 +1,6 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "Simple Map",
+  "name": "Simple map app showing places to visit in Samarkand",
   "icons": [
     {
       "src": "favicon.ico",
