@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "animate.css": "^3.7.0",
+    "mapbox-gl": "^0.50.0",
     "react": "^16.5.2",
     "react-dom": "^16.5.2",
     "react-loader-spinner": "^2.0.6",
