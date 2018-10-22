@@ -8,17 +8,17 @@ export default class PlaceInfo extends PureComponent {
     const { setPhotos, place, handleError } = this.props;
     const { latitude, longitude } = place;
     fetch(
-      `https://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=${TOKEN}&lat=${latitude}&lon=${longitude}&radius=1.5&format=json&nojsoncallback=1`
+      `https://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=${TOKEN}&lat=${latitude}&lon=${longitude}&radius=2&format=json&nojsoncallback=1`
     )
       .then(response => response.json())
       .then((data) => {
         setPhotos(data.photos.photo);
-      }).catch(() => handleError());
+      }).catch((err) => handleError(err));
   }
 
   render() {
-    const { photos, place } = this.props;
-
+    const { photos, place, error } = this.props;
+    if (error) return (<div>Sorry something went wrong. Error {error}</div> )
     if (photos) {
       const randomNumber = Math.floor(Math.random() * Math.floor(photos.length))
       const randomPhoto = photos[randomNumber]

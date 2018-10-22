@@ -5,8 +5,8 @@ import PlaceInfo from "./PlaceInfo";
 import PLACES from "./Places";
 import "mapbox-gl/dist/mapbox-gl.css";
 import "../Styles/App.css";
-import Checkbox from "./Checkbox";
-import '../../node_modules/animate.css/animate.css'
+import Select from "./Select";
+import "../../node_modules/animate.css/animate.css";
 
 const TOKEN = `pk.eyJ1IjoiYW52YXJvdiIsImEiOiJjamphdHI3YnUzbDY1M2tvNm5ua24xb3QxIn0.bGvFRXDBsgP4DEpB_LN15w
 `;
@@ -25,8 +25,10 @@ export default class MapApp extends Component {
         height: 500
       },
       popupInfo: null,
-      checkedItems: new Map(),
+      selected: "all",
       photos: null,
+      error: null,
+      clicked: false
     };
   }
 
@@ -40,20 +42,19 @@ export default class MapApp extends Component {
   }
 
   handleChange = e => {
-    const item = e.target.name;
-    const isChecked = e.target.checked;
-    this.setState(prevState => ({
-      checkedItems: prevState.checkedItems.set(item, isChecked)
-    }));
+    this.setState({ selected: e.target.value });
   };
 
   setPhotos = photos => {
     this.setState({ photos });
   };
 
-  handleError = () => {
-    this.setState({photos: null})
-  }
+  handleError = err => {
+    this.setState({
+      photos: null,
+      error: err
+    });
+  };
 
   resize = () => {
     const { viewport, width, height } = this.state;
@@ -70,22 +71,34 @@ export default class MapApp extends Component {
     this.setState({ viewport });
   };
 
+  renderSelect = e => {
+    this.setState({
+      popupInfo: PLACES[e.target.getAttribute("index")],
+      clicked: true
+    });
+  };
   renderPlaceMarker = place => {
-    const { checkedItems } = this.state;
-    return (
-      checkedItems.get(place.type) && (
-        
-        <Marker className={"animated bounce"} key={place.id} {...place}>
-        
-          <Pin 
+    const { selected } = this.state;
+    if (selected === "all") {
+      return (
+        <Marker className="animated bounce" key={place.id} {...place}>
+          <Pin
             size={20}
             onClick={() => this.setState({ popupInfo: place })}
             place={place}
           />
-          
         </Marker>
-        
-        
+      );
+    }
+    return (
+      place.type === selected && (
+        <Marker className={"animated bounce"} key={place.id} {...place}>
+          <Pin
+            size={20}
+            onClick={() => this.setState({ popupInfo: place })}
+            place={place}
+          />
+        </Marker>
       )
     );
   };
@@ -98,12 +111,14 @@ export default class MapApp extends Component {
           {...popupInfo}
           size={5}
           anchor="top"
-          onClose={() => this.setState({ popupInfo: null })}
+          onClose={() => this.setState({ popupInfo: null, clicked: false })}
+          className={this.state.clicked ? "animated shake" : "animated"}
         >
           <PlaceInfo
             place={popupInfo}
             setPhotos={this.setPhotos}
             photos={photos}
+            error={this.state.error}
           />
         </Popup>
       )
@@ -111,28 +126,30 @@ export default class MapApp extends Component {
   };
 
   render() {
-    const { viewport, checkedItems } = this.state;
+    const { viewport, selected } = this.state;
     return (
-      <div>
+      <React.Fragment>
         <h1 align="center">Places to visit in Samarkand</h1>
-        <form>
-          <fieldset>
-          <legend>Please select to show</legend>
-          <Checkbox
-            checkedItems={checkedItems}
-            handleChange={this.handleChange}
-          />
-          </fieldset>
-        </form>
-        <ReactMapGL
-          {...viewport}
-          onViewportChange={this.updateViewport}
-          mapboxApiAccessToken={TOKEN}
-        >
-          {PLACES.map(this.renderPlaceMarker)}
-          {this.renderPopup()}
-        </ReactMapGL>
-      </div>
+        <div className="grid">
+          <div className="sidebar">
+            <Select
+              selected={selected}
+              handleChange={this.handleChange}
+              renderSelect={this.renderSelect}
+            />
+          </div>
+          <div className="map">
+            <ReactMapGL
+              {...viewport}
+              onViewportChange={this.updateViewport}
+              mapboxApiAccessToken={TOKEN}
+            >
+              {PLACES.map(this.renderPlaceMarker)}
+              {this.renderPopup()}
+            </ReactMapGL>
+          </div>
+        </div>
+      </React.Fragment>
     );
   }
 }
