@@ -31,7 +31,7 @@ export default class PlaceInfo extends PureComponent {
             <img
               src={`https://farm${farm}.staticflickr.com/${server}/${id}_${secret}_q.jpg`}
               className="image"
-              alt="Point of interest"
+              alt={"Point of interest " + place.name}
             />
           </div>
         );
