@@ -1,5 +1,5 @@
 import React, { Component } from "react";
-import ReactMapGL, { Marker, Popup } from "react-map-gl";
+import { Marker, Popup } from "react-map-gl";
 import Pin from "./Pin";
 import PlaceInfo from "./PlaceInfo";
 import PLACES from "./Places";
@@ -7,6 +7,7 @@ import "mapbox-gl/dist/mapbox-gl.css";
 import "../Styles/App.css";
 import Select from "./Select";
 import "../../node_modules/animate.css/animate.css";
+import Map from "./Map";
 
 const TOKEN = `pk.eyJ1IjoiYW52YXJvdiIsImEiOiJjamphdHI3YnUzbDY1M2tvNm5ua24xb3QxIn0.bGvFRXDBsgP4DEpB_LN15w
 `;
@@ -27,8 +28,7 @@ export default class MapApp extends Component {
       popupInfo: null,
       selected: "all",
       photos: null,
-      error: null,
-      clicked: false
+      error: null
     };
   }
 
@@ -38,6 +38,15 @@ export default class MapApp extends Component {
   }
 
   componentDidMount() {
+    //for checking api key, for some reason react-mapbox-gl onError callback not firing when api key is wrong
+    fetch(
+      `https://api.tiles.mapbox.com/v4/1/13/2/3.jpg70?access_token=${TOKEN}`
+    )
+      .then(response => {
+        if (response.statusText === "Unauthorized")
+          throw new Error(response.statusText);
+      })
+      .catch(error => this.handleError(error.toString()));
     window.addEventListener("resize", this.resize);
     this.resize();
   }
@@ -155,14 +164,18 @@ export default class MapApp extends Component {
             />
           </div>
           <div className="map">
-            <ReactMapGL
-              {...viewport}
-              onViewStateChange={this.updateViewport}
-              mapboxApiAccessToken={TOKEN}
-            >
-              {PLACES.map(this.renderPlaceMarker)}
-              {this.renderPopup()}
-            </ReactMapGL>
+            {this.state.error ? (
+              <div>Something went wrong. {this.state.error}</div>
+            ) : (
+              <Map
+                viewport={viewport}
+                TOKEN={TOKEN}
+                updateViewport={this.updateViewport}
+                handleError={this.handleError}
+                renderPopup={this.renderPopup}
+                renderPlaceMarker={this.renderPlaceMarker}
+              />
+            )}
           </div>
         </div>
       </React.Fragment>
