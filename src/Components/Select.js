@@ -1,7 +1,7 @@
 import React, { PureComponent } from "react";
 import List from './List'
 
-export default class Checkbox extends PureComponent {
+export default class Select extends PureComponent {
   render() {
     const { selected, handleChange, renderSelect } = this.props;
     return (

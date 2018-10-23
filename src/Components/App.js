@@ -34,6 +34,7 @@ export default class MapApp extends Component {
 
   componentWillMount() {
     window.removeEventListener("resize", this.resize);
+    this.setState({ error: false });
   }
 
   componentDidMount() {
@@ -46,14 +47,13 @@ export default class MapApp extends Component {
   };
 
   setPhotos = photos => {
-    this.setState({ photos });
+    if (photos) {
+      this.setState({ photos });
+    }
   };
 
-  handleError = err => {
-    this.setState({
-      photos: null,
-      error: err
-    });
+  handleError = error => {
+    this.setState({ error });
   };
 
   resize = () => {
@@ -68,20 +68,32 @@ export default class MapApp extends Component {
   };
 
   updateViewport = viewport => {
-    this.setState({ viewport });
+    const { viewState } = viewport;
+    this.setState({ viewport: viewState });
   };
 
   renderSelect = e => {
+    const place = PLACES[e.target.getAttribute("index")];
+    if (place) {
+      place.className = "animated bounce";
+      setTimeout(() => {
+        delete place.className;
+      }, 100);
+    }
+
     this.setState({
-      popupInfo: PLACES[e.target.getAttribute("index")],
-      clicked: true
+      popupInfo: place
     });
   };
   renderPlaceMarker = place => {
     const { selected } = this.state;
     if (selected === "all") {
       return (
-        <Marker className="animated bounce" key={place.id} {...place}>
+        <Marker
+          className={place.className ? place.className : "animated"}
+          key={place.id}
+          {...place}
+        >
           <Pin
             size={20}
             onClick={() => this.setState({ popupInfo: place })}
@@ -92,7 +104,11 @@ export default class MapApp extends Component {
     }
     return (
       place.type === selected && (
-        <Marker className={"animated bounce"} key={place.id} {...place}>
+        <Marker
+          className={place.className ? place.className : "animated"}
+          key={place.id}
+          {...place}
+        >
           <Pin
             size={20}
             onClick={() => this.setState({ popupInfo: place })}
@@ -111,14 +127,14 @@ export default class MapApp extends Component {
           {...popupInfo}
           size={5}
           anchor="top"
-          onClose={() => this.setState({ popupInfo: null, clicked: false })}
-          className={this.state.clicked ? "animated shake" : "animated"}
+          onClose={() => this.setState({ popupInfo: null })}
         >
           <PlaceInfo
             place={popupInfo}
             setPhotos={this.setPhotos}
             photos={photos}
             error={this.state.error}
+            handleError={this.handleError}
           />
         </Popup>
       )
@@ -141,7 +157,7 @@ export default class MapApp extends Component {
           <div className="map">
             <ReactMapGL
               {...viewport}
-              onViewportChange={this.updateViewport}
+              onViewStateChange={this.updateViewport}
               mapboxApiAccessToken={TOKEN}
             >
               {PLACES.map(this.renderPlaceMarker)}

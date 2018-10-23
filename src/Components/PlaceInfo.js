@@ -10,18 +10,29 @@ export default class PlaceInfo extends PureComponent {
     fetch(
       `https://api.flickr.com/services/rest/?method=flickr.photos.search&api_key=${TOKEN}&lat=${latitude}&lon=${longitude}&radius=2&format=json&nojsoncallback=1`
     )
-      .then(response => response.json())
-      .then((data) => {
-        setPhotos(data.photos.photo);
-      }).catch((err) => handleError(err));
+      .then(response => {
+        if (!response.ok) {
+          throw new Error(response);
+        }
+        return response.json();
+      })
+      .then(result => {
+        if (result.stat === "fail") {
+          throw new Error(result.message);
+        } 
+        setPhotos(result.photos.photo);
+      })
+      .catch(error => handleError(error.toString()));
   }
 
   render() {
     const { photos, place, error } = this.props;
-    if (error) return (<div>Sorry something went wrong. Error {error}</div> )
+    if (error) return <div>Sorry something went wrong. Error {error}</div>;
     if (photos) {
-      const randomNumber = Math.floor(Math.random() * Math.floor(photos.length))
-      const randomPhoto = photos[randomNumber]
+      const randomNumber = Math.floor(
+        Math.random() * Math.floor(photos.length)
+      );
+      const randomPhoto = photos[randomNumber];
       if (randomPhoto) {
         const { farm, id, server, secret } = randomPhoto;
         return (
@@ -37,12 +48,6 @@ export default class PlaceInfo extends PureComponent {
         );
       }
     }
-    return (<Loader
-      type="Circles"
-      color="#00BFFF"
-      height="100"
-      width="100"
-    />
-    );
+    return <Loader type="Circles" color="#00BFFF" height="100" width="100" />;
   }
 }
